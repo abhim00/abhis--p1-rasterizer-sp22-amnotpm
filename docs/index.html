@@ -61,7 +61,7 @@ To test whether the points are in the triangle, we first create line equations f
 
 We optimize our algorithm by cutting down our sample size through creating a bounding box over the triangle and sampling that region only. We find the bounding box through finding X and Y lower and upper bounds based on the triangle coordinates passed in. Because this is nearly the exact bounding box process from the problem description our algorithm can be no worse as it does essentially the same thing. 
 
-<img src="images/image1.png" align="middle" width="400px"/>
+<img src="images/single_colortriangles.png" align="middle" width="400px"/>
 
 *Image is zoomed in on left edge of red
 triangle.
@@ -71,69 +71,133 @@ triangle.
 <h3 align="middle">Part 2: Antialiasing triangles</h3>
 <p> 
 Antialiasing by Supersampling
-Antialiasing is the idea that when signal changes very quickly, our sampling efforts are too slow to capture high frequency signals and causes the rendered image to appear very jaggy. We solve this antialiasing problem by filtering out high frequencies before sampling. We do this through super sampling. Super sampling allows us to avoid aliasing around the borders of the triangle. Supersampling involves taking the average of multiple samples per pixel to get a blurred effect. We do this to approximate the effect of the 1-pixel box filter technique to solve aliasing from lecture. Once we take the nXn samples “inside” each pixel, we take the average of the to come up with the final value of the color that is going to populate the pixel in the perspective of the frame buffer. The cause of antialiasing in our case is because the frequency near the edges of the triangles are too high and by increasing the sampling rate, we can attenuate signals above the Nyquist frequency. To store the increased amount of data in the sample_buffer, I dynamically increase the size of the buffer according to the sample_rate. Then, it was a matter of correctly indexing into the 1D Data structure and retrieving the supersampled points.
+Antialiasing is the idea that when signal changes very quickly, our sampling efforts are too slow to capture high frequency signals and causes the rendered image to appear very jaggy. We solve this antialiasing problem by filtering out high frequencies before sampling. We do this through super sampling. Super sampling allows us to avoid aliasing around the borders of the triangle. Supersampling involves taking the average of multiple samples per pixel to get a blurred effect. We do this to approximate the effect of the 1-pixel box filter technique to solve aliasing from lecture. Once we take the nXn samples “inside” each pixel, we take the average of the to come up with the final value of the color that is going to populate the pixel in the perspective of the frame buffer. The cause of antialiasing in our case is because the frequency near the edges of the triangles are too high and by increasing the sampling rate, we can attenuate signals above the Nyquist frequency. To store the increased amount of data in the sample_buffer, I dynamically increase the size of the buffer according to the sample_rate. Then, it was a matter of correctly indexing into the 1D Data structure and retrieving the supersampled points. </p>
 
-<img src="images/image1.png" align="middle" width="400px"/>
+<img src="images/t2_r1.png" align="middle" width="400px"/>
 
-*rate = 1
+<img src="images/t2_r4.png" align="middle" width="400px"/>
 
-<img src="images/image1.png" align="middle" width="400px"/>
+<img src="images/t2_r16.png" align="middle" width="400px"/>
 
-*rate = 4
-
-<img src="images/image1.png" align="middle" width="400px"/>
-
-*rate = 16
-
+<p>
 In the images above, we can see that as the rate progressively increases, the angle at the right edge of the red triangle gets smoother as well. Rate = 1 is very jaggy while rate = 16 is quite smooth and blurred. 
+</p>
 
+
+<h3 align="middle">Part 3: Transforms</h3>
+
+<p> 
+Transforms
+To the left is the original rendered robot man from the project skeleton. To the right is the modified robot man. To the right is the my_robot.svg and by rotating and translating, I modified the robot man to be dancing with his arm in the air. 
+</p>
+
+<img src="images/og_robot.png" align="middle" width="400px"/>
+
+original robot
+
+<img src="images/dancing_robot.png" align="middle" width="400px"/>
+
+dancing robot
+
+<h2 align="middle">Section II: Sampling</h2>
+
+<h3 align="middle">Part 4: Barycentric coordinates</h3>
+
+<p>
+Barycentric Coordinates
+Texture mapping is the idea that we take an image texture and apply it to an image surface. In order to implement texture mapping, one technique we use is barycentric coordinates. Barycentric coordinates are a way to interpolate positions within a triangle. We generally want to smoothly interpolate values such as texture coordinates or color values onto the unmapped image surface. To start, we are given the coordinates of the triangle and we have to figure out how to texture map the points inside the triangle. To interpolate points, we essentially create a weighted sum of the closest vertex values to the point in question. We assign a weight proportional to how close the vertex in question is to the desired point that needs to be interpolated and enforce that these weights sum to 1. 
+
+On the left we see a single triangle colored using barycentric coordinates with one red, one green, and one blue vertex at each of the respective edges. The points inside the vertexes are interpolated using the scheme we described above. On the right we see a color wheel that uses barycentric coordinates to smoothly interpolate the triangles making up the color wheel. 
+</p>
+
+<img src="images/s_tri_color.png" align="middle" width="400px"/>
+
+
+<img src="images/colorwheel.png" align="middle" width="400px"/>
+<p> ** single triangle colored on left, color wheel colored on right </p>
+
+<h3 align="middle">Part 5: "Pixel sampling" for texture mapping</h3>
+<p>
+Texture mapping describes the process of choosing which pixel from the texture to sample for a given position on the screen surface image. This problem becomes more obvious once we realize not all images and textures are linear and when we are faced with a nonlinear texture, perspective interpolation without barycentric interpolation will result in a poor image. Pixel sampling methods such as bilinear sampling and nearest-neighbor sampling are used to resolve this problem. Generally, pixel sampling is the the idea of essentially scaling an image that will interpolate colors according to the sampling scheme. We look up the corresponding position of a given pixel on the texture map and use interpolation to map the texture to the surface image. 
+Nearest neighbor sampling: The goal is to convert the given UV coordinates to a continuous XY coordinate system. We implement this by scaling the point in question to the mipmap’s width and height and identify the closes texel. We then use this texel and scale it with the MipLevel to find the interpolated color. This technique while simple, often results in a more pixellated result than bilinear sampling does.
+Bilinear sampling: The goal here is to take the four surrounding pixels relative to the point in question and find the weighted average of them (weights according to the distance between the point and each of the four pixels). To implement this, we conduct three different linear interpolations (2 across the horizontal axis and 1 across the vertical). This method generally produces a smoother less pixellated image as compared to nearest neighbor sampling.
 </p>
 
 <div align="middle">
   <table style="width=100%">
     <tr>
       <td>
-        <img src="images/image1.png" align="middle" width="400px"/>
-        <figcaption align="middle">Caption goes here.</figcaption>
+        <img src="images/nn_sr1.png" align="middle" width="400px"/>
+        <figcaption align="middle">Nearest-Neighbor, sample rate = 1</figcaption>
       </td>
       <td>
-        <img src="images/image2.png" align="middle" width="400px"/>
-        <figcaption align="middle">Caption goes here.</figcaption>
+        <img src="images/nn_sr16.png" align="middle" width="400px"/>
+        <figcaption align="middle">Nearest-Neighbor, sample rate = 16</figcaption>
       </td>
     </tr>
     <br>
     <tr>
       <td>
-        <img src="images/image3.png" align="middle" width="400px"/>
-        <figcaption align="middle">Caption goes here.</figcaption>
+        <img src="images/bi_sr1.png" align="middle" width="400px"/>
+        <figcaption align="middle">Bilinear, sample rate = 1</figcaption>
       </td>
       <td>
-        <img src="images/image4.png" align="middle" width="400px"/>
-        <figcaption align="middle">Caption goes here.</figcaption>
+        <img src="images/bi_sr16.png" align="middle" width="400px"/>
+        <figcaption align="middle">Bilinear, sample rate = 16</figcaption>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<p> 
+In the images above it is clear that bilinear performs better than nearest neighbor. There is a smoother gradient between pixels and the true image of the white border just underneath the blue border of the logo is better preserved in the bilinear sample. In lower resolution images, the upside of bilinear sampling is more apparent as the nearest-neighbor has less data points than bilinear to interpolate the same pixel. 
+</p>
+
+<h3 align="middle">Part 6: "Level sampling" with mipmaps for texture mapping</h3>
+<p> 
+The final part of the project involves level sampling. An aliasing problem that often arises from texture mapping is an issue known as minification. This occurs when the area covered by a texture in the screen space is smaller than its area in the in the texture space. The best way to solve this problem is the under sample the texture map for these areas and attenuate high frequencies from the texture map before we map onto the screen space. We store the different levels of downsampling in a mipmap object. Mipmaps are essentially layers of images with each layer representing a lower resolution from the one below it of the same image. In deciding which Mipmap level to choose from there are 3 different options: 
+ <ul>
+    <li>L_ZERO: sampling from the lowest layer mipmap (highest resolution)
+</li>
+    <li>L_NEAREST: sampling from the nearest mipmap level to the current level.
+</li>
+    <li>L_LINEAR: Do bilinear sampling on the two nearest adjacent mipmap levels and do trilinear sampling. Compute adjacent levels with floor and ceil of calculated level.</li>
+  </ul>
+
+  We compute the mipmap level using the following equations and solve for the level D. 
+  
+  <img src="images/eq.png" align="middle" width="400px"/>
+  
+
+<div align="middle">
+  <table style="width=100%">
+    <tr>
+      <td>
+        <img src="images/lsm0psmn.png" align="middle" width="400px"/>
+        <figcaption align="middle">LSM = 0; PSM = Nearest</figcaption>
+      </td>
+      <td>
+        <img src="images/lsm0psmb.png" align="middle" width="400px"/>
+        <figcaption align="middle">LSM = 0; PSM = Bilinear
+</figcaption>
+      </td>
+    </tr>
+    <br>
+    <tr>
+      <td>
+        <img src="images/lsmnpsmn.png" align="middle" width="400px"/>
+        <figcaption align="middle">LSM = Nearest ; PSM = Nearest</figcaption>
+      </td>
+      <td>
+        <img src="images/lsmnpsml.png" align="middle" width="400px"/>
+        <figcaption align="middle">LSM = Nearest ; PSM = Linear</figcaption>
       </td>
     </tr>
   </table>
 </div>
 
 
-
-
-
-
-<h3 align="middle">Part 3: Transforms</h3>
-
-
-
-<h2 align="middle">Section II: Sampling</h2>
-
-<h3 align="middle">Part 4: Barycentric coordinates</h3>
-
-
-<h3 align="middle">Part 5: "Pixel sampling" for texture mapping</h3>
-
-
-<h3 align="middle">Part 6: "Level sampling" with mipmaps for texture mapping</h3>
-
+</p>
 
 
 <h2 align="middle">Section III: Art Competition</h2>
