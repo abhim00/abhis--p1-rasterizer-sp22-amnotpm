@@ -68,6 +68,26 @@ triangle.
 
 </p>
 
+<h3 align="middle">Part 2: Antialiasing triangles</h3>
+<p> 
+Antialiasing by Supersampling
+Antialiasing is the idea that when signal changes very quickly, our sampling efforts are too slow to capture high frequency signals and causes the rendered image to appear very jaggy. We solve this antialiasing problem by filtering out high frequencies before sampling. We do this through super sampling. Super sampling allows us to avoid aliasing around the borders of the triangle. Supersampling involves taking the average of multiple samples per pixel to get a blurred effect. We do this to approximate the effect of the 1-pixel box filter technique to solve aliasing from lecture. Once we take the nXn samples “inside” each pixel, we take the average of the to come up with the final value of the color that is going to populate the pixel in the perspective of the frame buffer. The cause of antialiasing in our case is because the frequency near the edges of the triangles are too high and by increasing the sampling rate, we can attenuate signals above the Nyquist frequency. To store the increased amount of data in the sample_buffer, I dynamically increase the size of the buffer according to the sample_rate. Then, it was a matter of correctly indexing into the 1D Data structure and retrieving the supersampled points.
+
+<img src="images/image1.png" align="middle" width="400px"/>
+
+*rate = 1
+
+<img src="images/image1.png" align="middle" width="400px"/>
+
+*rate = 4
+
+<img src="images/image1.png" align="middle" width="400px"/>
+
+*rate = 16
+
+In the images above, we can see that as the rate progressively increases, the angle at the right edge of the red triangle gets smoother as well. Rate = 1 is very jaggy while rate = 16 is quite smooth and blurred. 
+
+</p>
 
 <div align="middle">
   <table style="width=100%">
@@ -96,7 +116,7 @@ triangle.
 </div>
 
 
-<h3 align="middle">Part 2: Antialiasing triangles</h3>
+
 
 
 
