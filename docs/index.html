@@ -53,7 +53,21 @@
 
 <h3 align="middle">Part 1: Rasterizing single-color triangles</h3>
 
-<p>Here is an example 2x2 gridlike structure using an HTML table. Each <b>tr</b> is a row and each <b>td</b> is a column in that row. You might find this useful for framing and showing your result images in an organized fashion.</p>
+<p>
+Drawing Single-Color Triangles
+Rasterization is the process of converting triangles to pixels in a frame buffer. First, we sample to see which pixel center’s are inside the triangle. And finally, if they are in the triangle (which we mathematically calculate) then we color that pixel and load that location in the frame buffer as a visual approximation of the triangle. 
+
+To test whether the points are in the triangle, we first create line equations for each side of the triangle. Then, we create a vector from the sampled point to each of the triangle vertices: If all the vectors are the same sign, we  know the point is in the triangle and can fill in the pixel.
+
+We optimize our algorithm by cutting down our sample size through creating a bounding box over the triangle and sampling that region only. We find the bounding box through finding X and Y lower and upper bounds based on the triangle coordinates passed in. Because this is nearly the exact bounding box process from the problem description our algorithm can be no worse as it does essentially the same thing. 
+
+<img src="images/image1.png" align="middle" width="400px"/>
+
+*Image is zoomed in on left edge of red
+triangle.
+
+</p>
+
 
 <div align="middle">
   <table style="width=100%">
